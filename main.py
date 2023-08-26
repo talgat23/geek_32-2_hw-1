@@ -9,7 +9,7 @@ async def onstart_up(_):
     db.sql_create_db()
 
 
-start.register_start_handler(dp)
+start.register_start_handlers(dp)
 
 if __name__ == "__main__":
     executor.start_polling(dp,
