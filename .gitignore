@@ -6,6 +6,6 @@ db.sqlite3
 *.py[cod]
 *.so
 __pycache__/
-
+media
 
 
