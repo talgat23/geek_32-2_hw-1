@@ -9,10 +9,11 @@ class Database:
 
     def sql_create_db(self):
         if self.connection:
-            print("Database connected successfuly")
+            print("Database connected successfully")
 
         self.connection.execute(sql_queries.CREATE_USER_TABLE_QUERY)
         self.connection.execute(sql_queries.CREATE_USER_FORM_TABLE_QUERY)
+        self.connection.execute(sql_queries.CREATE_LIKE_FORM_TABLE_QUERY)
         self.connection.commit()
 
     def sql_insert_user_command(self, telegram_id, username,
@@ -22,7 +23,8 @@ class Database:
                              telegram_id,
                              username,
                              first_name,
-                             last_name)
+                             last_name,
+                             )
                             )
         self.connection.commit()
 
@@ -59,12 +61,11 @@ class Database:
             "married": row[5],
             "photo": row[6]
         }
-
         return self.cursor.execute(
             sql_queries.SELECT_USER_FORM_BY_TELEGRAM_ID_QUERY, (telegram_id,)
         ).fetchall()
 
-    def sql_select_user_forms_command(self, telegram_id):
+    def sql_select_user_forms_command(self):
         self.cursor.row_factory = lambda cursor, row: {
             "id": row[0],
             "telegram_id": row[1],
@@ -74,7 +75,15 @@ class Database:
             "married": row[5],
             "photo": row[6]
         }
-
         return self.cursor.execute(
             sql_queries.SELECT_USER_FORM_QUERY
         ).fetchall()
+
+    def sql_insert_like_form_command(self, owner_telegram_id, liker_telegram_id, telegram_id):
+        self.cursor.execute(sql_queries.INSERT_LIKE_FORM_QUERY,
+                            (None,
+                             owner_telegram_id,
+                             liker_telegram_id,
+                             telegram_id)
+                            )
+        self.connection.commit()

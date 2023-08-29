@@ -58,7 +58,7 @@ async def admin_select_users_keyboard():
 async def new_start_keyboard():
     markup = InlineKeyboardMarkup()
     random_profiles_button = InlineKeyboardButton(
-        "Просотр анкет",
+        "Просмотр анкет",
         callback_data="random_profiles"
     )
     markup.row(
@@ -68,12 +68,17 @@ async def new_start_keyboard():
 
 
 async def like_dislike_keyboard(telegram_id):
-    markup = InlineKeyboardMarkup()
-    random_profiles_button = InlineKeyboardButton(
-        "",
-        callback_data="random_profiles"
+    markup = InlineKeyboardMarkup(row_width=2)
+    like_button = InlineKeyboardButton(
+        ":like:",
+        callback_data=f"like_button_{telegram_id}"
+    )
+    dislike_button = InlineKeyboardButton(
+        ":Dislike:",
+        callback_data=f"random_profiles"
     )
     markup.row(
-        random_profiles_button,
+        like_button,
+        dislike_button
     )
     return markup

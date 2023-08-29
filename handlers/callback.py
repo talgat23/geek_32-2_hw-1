@@ -1,11 +1,12 @@
 import random
+import re
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, user
 from config import bot
 from aiogram import types, Dispatcher
 
 from database.sql_commands import Database
-from keybords.start_kb import quiz_1_keyboard, quiz_2_keyboard
+from keybords.start_kb import quiz_1_keyboard, quiz_2_keyboard, like_dislike_keyboard
 
 
 async def quiz_1(message: types.Message):
@@ -90,19 +91,45 @@ async def my_profile_call(call: types.CallbackQuery):
 
 
 async def random_profiles_call(call: types.CallbackQuery):
-    user_forms = Database().sql_select_user_forms_command(telegram_id=call.from_user.id)
+    user_forms = Database().sql_select_user_forms_command()
     print(user_forms)
     random_form = random.choice(user_forms)
-    print (random_form)
+    print(random_form)
     with open(random_form['photo'], 'rb') as photo:
         await bot.send_photo(
-            chat_id=call.from_user.id,
+            chat_id=call.message.chat.id,
             photo=photo,
             caption=f"*Nickname:* {random_form['nickname']}\n"
                     f"*Age:* {random_form['age']}\n"
                     f"*Bio* {random_form['bio']}\n"
                     f"*Married* {random_form['married']}\n",
-            parse_mode=types.ParseMode.MARKDOWN
+            parse_mode=types.ParseMode.MARKDOWN,
+            reply_markup=await like_dislike_keyboard(
+                telegram_id=random_form["telegram_id"]
+            )
+        )
+
+
+async def like_call(call: types.CallbackQuery):
+    owner_telegram_id = re.sub("like_button_", "", call.data)
+    print(owner_telegram_id)
+    is_like_existed = Database().sql_insert_like_form_command(
+        owner_telegram_id=owner_telegram_id,
+        liker_telegram_id=call.from_user.id
+    )
+    if is_like_existed:
+        await bot.send_message(
+            chat_id=call.message.chat.id,
+            text="Ты уже лайкал эту анкету"
+        )
+    else:
+        Database().sql_select_liked_form_command(
+            owner_telegram_id=owner_telegram_id,
+            liker_telegram_id=call.from_user.id
+        )
+        await bot.send_message(
+            chat_id=owner_telegram_id,
+            text="Кто-то вас лайкнул"
         )
 
 
@@ -114,3 +141,4 @@ def register_callback_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(admin_user_call, lambda call: call.data == "admin_user_list")
     dp.register_callback_query_handler(my_profile_call, lambda call: call.data == "my_profile")
     dp.register_callback_query_handler(random_profiles_call, lambda call: call.data == "random_profiles")
+    dp.register_callback_query_handler(like_call, lambda call: "like_button_" in call.data)
